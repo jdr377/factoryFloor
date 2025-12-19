@@ -1,0 +1,38 @@
+[
+  {
+    "id": "VX248B",
+    "type": "Valve",
+    "x": 1240,
+    "y": 860,
+    "defaultPosition": "closed",
+    "flammable": true,
+    "lastInspected": "2025-07-28"
+  },
+  {
+    "id": "SW102A",
+    "type": "Switch",
+    "x": 740,
+    "y": 420,
+    "defaultPosition": "on",
+    "flammable": false,
+    "lastInspected": "2025-06-15"
+  },
+  {
+    "id": "HY330C",
+    "type": "Hydrant",
+    "x": 1680,
+    "y": 980,
+    "defaultPosition": "closed",
+    "flammable": false,
+    "lastInspected": "2025-05-02"
+  },
+  {
+    "id": "EX017D",
+    "type": "Exit",
+    "x": 320,
+    "y": 120,
+    "defaultPosition": "open",
+    "flammable": false,
+    "lastInspected": "2025-08-01"
+  }
+]
