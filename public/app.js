@@ -134,6 +134,19 @@
     }
   }
 
+  function fitCameraToBounds(camera, bounds, viewport) {
+    const width = Math.max(1, viewport.width);
+    const height = Math.max(1, viewport.height);
+    const spanX = Math.max(1, bounds.maxX - bounds.minX);
+    const spanY = Math.max(1, bounds.maxY - bounds.minY);
+    const padding = 0.9;
+    const zoom = Math.min(width / spanX, height / spanY) * padding;
+    camera.zoom = clamp(zoom, MIN_ZOOM, MAX_ZOOM);
+    camera.x = (bounds.minX + bounds.maxX) / 2;
+    camera.y = (bounds.minY + bounds.maxY) / 2;
+    clampCameraToBounds(camera, bounds, viewport);
+  }
+
   // Convert screen pixels into world coordinates using the camera transform.
   function screenToWorld(point, camera, viewport) {
     return {
@@ -178,21 +191,30 @@
   function App() {
     const canvasRef = useRef(null);
     const popupRef = useRef(null);
-    const cameraRef = useRef({ x: 800, y: 600, zoom: 1 });
-    const viewportRef = useRef({ width: window.innerWidth, height: window.innerHeight, dpr: window.devicePixelRatio || 1 });
+    const cameraRef = useRef({ x: 800, y: 600, zoom: 0.8 });
+    const getViewportMetrics = () => {
+      const visual = window.visualViewport;
+      const width = visual?.width || window.innerWidth;
+      const height = visual?.height || window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      return { width, height, dpr };
+    };
+
+    const viewportRef = useRef(getViewportMetrics());
       const gestureRef = useRef({
         panning: false,
         lastX: 0,
         lastY: 0,
         pointers: new Map(),
         startDistance: 0,
-        startZoom: 1,
+        startZoom: 0.5,
         startWorld: null,
         dragged: false
       });
     const animationRef = useRef(null);
     const rafRef = useRef(null);
     const boundsRef = useRef({ minX: 0, minY: 0, maxX: 2000, maxY: 1200 });
+    const didInitCameraRef = useRef(false);
 
     const [components, setComponents] = useState([]);
     const [polygons, setPolygons] = useState(FALLBACK_POLYGONS);
@@ -244,9 +266,10 @@
             maxX: Math.max(...xs) + 400,
             maxY: Math.max(...ys) + 300
           };
-          const camera = cameraRef.current;
-          camera.x = (boundsRef.current.minX + boundsRef.current.maxX) / 2;
-          camera.y = (boundsRef.current.minY + boundsRef.current.maxY) / 2;
+          if (!didInitCameraRef.current) {
+            fitCameraToBounds(cameraRef.current, boundsRef.current, viewportRef.current);
+            didInitCameraRef.current = true;
+          }
           scheduleDraw();
         }
       } catch (error) {
@@ -260,9 +283,10 @@
           maxX: Math.max(...xs) + 400,
           maxY: Math.max(...ys) + 300
         };
-        const camera = cameraRef.current;
-        camera.x = (boundsRef.current.minX + boundsRef.current.maxX) / 2;
-        camera.y = (boundsRef.current.minY + boundsRef.current.maxY) / 2;
+        if (!didInitCameraRef.current) {
+          fitCameraToBounds(cameraRef.current, boundsRef.current, viewportRef.current);
+          didInitCameraRef.current = true;
+        }
         scheduleDraw();
       }
     };
@@ -286,16 +310,18 @@
 
     useEffect(() => {
       const handleResize = () => {
-        viewportRef.current = {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          dpr: window.devicePixelRatio || 1
-        };
+        viewportRef.current = getViewportMetrics();
         scheduleDraw();
       };
       window.addEventListener('resize', handleResize);
+      window.visualViewport?.addEventListener('resize', handleResize);
+      window.visualViewport?.addEventListener('scroll', handleResize);
       handleResize();
-      return () => window.removeEventListener('resize', handleResize);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        window.visualViewport?.removeEventListener('resize', handleResize);
+        window.visualViewport?.removeEventListener('scroll', handleResize);
+      };
     }, []);
 
     const results = useMemo(() => {
