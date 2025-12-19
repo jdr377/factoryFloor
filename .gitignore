@@ -1,5 +1,4 @@
 node_modules/
-data/factory.db
 .DS_Store
 firebase-debug.log
 .firebase/

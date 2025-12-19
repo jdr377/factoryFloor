@@ -34,12 +34,12 @@
     {
     "id": "HY1000C",
     "type": "Hydrant",
+    "defaultPosition": "closed",
     "x": 1100,
     "y": 550,
-    "defaultPosition": "closed",
-    "flammable": false,
+    "chemical": "CO2",
     "lastInspected": "2024-08-02",
-    "testedPressure": 150
+    "testedPressure": 180
   },
   {
     "id": "EXIT1",
