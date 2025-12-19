@@ -14,12 +14,12 @@ body {
   margin: 0;
   background: #0e0f12;
   color: #f5f6f7;
-  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   overflow: hidden;
 }
 
 #root {
-  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   width: 100vw;
 }
 

@@ -310,7 +310,9 @@
 
     useEffect(() => {
       const handleResize = () => {
-        viewportRef.current = getViewportMetrics();
+        const metrics = getViewportMetrics();
+        viewportRef.current = metrics;
+        document.documentElement.style.setProperty('--vh', `${metrics.height * 0.01}px`);
         scheduleDraw();
       };
       window.addEventListener('resize', handleResize);
