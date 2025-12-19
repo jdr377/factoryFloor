@@ -15,6 +15,16 @@ const components = JSON.parse(raw);
 
 const db = new Database(dbPath);
 
+const RESERVED_KEYS = new Set([
+  'id',
+  'type',
+  'x',
+  'y',
+  'defaultPosition',
+  'flammable',
+  'lastInspected'
+]);
+
 db.exec(`
   DROP TABLE IF EXISTS components;
   CREATE TABLE components (
@@ -24,19 +34,27 @@ db.exec(`
     y INTEGER,
     defaultPosition TEXT,
     flammable INTEGER,
-    lastInspected TEXT
+    lastInspected TEXT,
+    testedPressure INTEGER,
+    attributes TEXT
   );
 `);
 
 const insert = db.prepare(`
-  INSERT INTO components (id, type, x, y, defaultPosition, flammable, lastInspected)
-  VALUES (@id, @type, @x, @y, @defaultPosition, @flammable, @lastInspected)
+  INSERT INTO components (id, type, x, y, defaultPosition, flammable, lastInspected, testedPressure, attributes)
+  VALUES (@id, @type, @x, @y, @defaultPosition, @flammable, @lastInspected, @testedPressure, @attributes)
 `);
 
 const insertMany = db.transaction((items) => {
   items.forEach((item) => insert.run({
     ...item,
-    flammable: item.flammable ? 1 : 0
+    flammable: item.flammable ? 1 : 0,
+    testedPressure: item.testedPressure ?? null,
+    attributes: JSON.stringify(
+      Object.fromEntries(
+        Object.entries(item).filter(([key]) => !RESERVED_KEYS.has(key))
+      )
+    )
   }));
 });
 

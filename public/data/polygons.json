@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Building",
+    "label": "Main Building",
+    "x": 300,
+    "y": 200,
+    "width": 1640,
+    "height": 930,
+    "fill": "#2b2f36",
+    "stroke": "rgba(0,0,0,0.35)",
+    "z": 0
+  },
+  {
+    "id": "cleanroom",
+    "label": "Clean Room",
+    "x": 497,
+    "y": 367,
+    "width": 459,
+    "height": 223,
+    "fill": "#3a3f47",
+    "stroke": "rgba(0,0,0,0.35)",
+    "z": 1
+  },
+  {
+    "id": "mixingarea",
+    "label": "Mixing Area",
+    "x": 1251,
+    "y": 684,
+    "width": 426,
+    "height": 279,
+    "fill": "#3a3f47",
+    "stroke": "rgba(0,0,0,0.35)",
+    "z": 1
+  }
+]

@@ -5,7 +5,12 @@
     Valve: '⚙️',
     Switch: '⚡️',
     Hydrant: '🧯',
-    Exit: '🚪'
+    Exit: '🚪',
+    WashPoint: '🚿',
+    ChemicalTank: '🛢',
+    Gauge: '⏲️',
+    ElectricalOutlet: '🔌'
+
   };
   const FALLBACK_COMPONENTS = [
     {
@@ -38,24 +43,95 @@
     {
       id: 'EX017D',
       type: 'Exit',
-      x: 320,
-      y: 120,
+      x: 450,
+      y: 200,
       defaultPosition: 'open',
       flammable: false,
       lastInspected: '2025-08-01'
     }
   ];
+  const FALLBACK_POLYGONS = [
+    {
+      id: 'footprint-a',
+      label: 'Footprint A',
+      x: 300,
+      y: 200,
+      width: 1640,
+      height: 930,
+      fill: '#2b2f36',
+      stroke: 'rgba(0,0,0,0.35)',
+      z: 0
+    },
+    {
+      id: 'structure-1',
+      label: 'Structure 1',
+      x: 497,
+      y: 367,
+      width: 459,
+      height: 223,
+      fill: '#3a3f47',
+      stroke: 'rgba(0,0,0,0.35)',
+      z: 1
+    },
+    {
+      id: 'structure-2',
+      label: 'Structure 2',
+      x: 1251,
+      y: 684,
+      width: 426,
+      height: 279,
+      fill: '#3a3f47',
+      stroke: 'rgba(0,0,0,0.35)',
+      z: 1
+    }
+  ];
 
-  const HIT_RADIUS = 26;
-  const MIN_ZOOM = 0.35;
+  const BASE_HIT_RADIUS = 34;
+  const MIN_HIT_RADIUS = 28;
+  const MAX_HIT_RADIUS = 52;
+  const MIN_ZOOM = 0.5;
   const MAX_ZOOM = 4.5;
-  const VERSION_POLL_MS = 60000;
-
   const easeInOutCubic = (t) =>
     t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
+  }
+
+  function getHitRadius(camera) {
+    return clamp(BASE_HIT_RADIUS / Math.sqrt(camera.zoom), MIN_HIT_RADIUS, MAX_HIT_RADIUS);
+  }
+
+  function getGridBounds(bounds) {
+    const gridPadding = 200;
+    return {
+      minX: bounds.minX - gridPadding,
+      minY: bounds.minY - gridPadding,
+      maxX: bounds.maxX + gridPadding,
+      maxY: bounds.maxY + gridPadding
+    };
+  }
+
+  function clampCameraToBounds(camera, bounds, viewport) {
+    const gridBounds = getGridBounds(bounds);
+    const halfWidth = viewport.width / (2 * camera.zoom);
+    const halfHeight = viewport.height / (2 * camera.zoom);
+    const minX = gridBounds.minX + halfWidth;
+    const maxX = gridBounds.maxX - halfWidth;
+    const minY = gridBounds.minY + halfHeight;
+    const maxY = gridBounds.maxY - halfHeight;
+
+    if (minX > maxX) {
+      camera.x = (gridBounds.minX + gridBounds.maxX) / 2;
+    } else {
+      camera.x = clamp(camera.x, minX, maxX);
+    }
+
+    if (minY > maxY) {
+      camera.y = (gridBounds.minY + gridBounds.maxY) / 2;
+    } else {
+      camera.y = clamp(camera.y, minY, maxY);
+    }
   }
 
   // Convert screen pixels into world coordinates using the camera transform.
@@ -81,6 +157,24 @@
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   }
 
+  function formatValue(key, value) {
+    if (value === null || value === undefined) return 'Unknown';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (key === 'lastInspected') return formatDate(value);
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  }
+
+  function getComponentAttributes(component) {
+    if (component.attributes && typeof component.attributes === 'object') {
+      return component.attributes;
+    }
+    const reserved = new Set(['id', 'type', 'x', 'y', 'defaultPosition', 'lastInspected', 'flammable', 'attributes']);
+    return Object.fromEntries(
+      Object.entries(component).filter(([key]) => !reserved.has(key))
+    );
+  }
+
   function App() {
     const canvasRef = useRef(null);
     const popupRef = useRef(null);
@@ -101,12 +195,16 @@
     const boundsRef = useRef({ minX: 0, minY: 0, maxX: 2000, maxY: 1200 });
 
     const [components, setComponents] = useState([]);
-    const [version, setVersion] = useState('');
+    const [polygons, setPolygons] = useState(FALLBACK_POLYGONS);
+    const [version, setVersion] = useState('static');
     const [query, setQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [activeComponent, setActiveComponent] = useState(null);
     const [selectedId, setSelectedId] = useState(null);
     const [popupPosition, setPopupPosition] = useState(null);
+    const componentsRef = useRef([]);
+    const selectedIdRef = useRef(null);
+    const activeComponentRef = useRef(null);
 
     useEffect(() => {
       let debounce = null;
@@ -114,18 +212,35 @@
       return () => clearTimeout(debounce);
     }, [query]);
 
+    const clearSearchResults = () => {
+      setQuery('');
+      setDebouncedQuery('');
+    };
+
+    useEffect(() => {
+      componentsRef.current = components;
+    }, [components]);
+
+    useEffect(() => {
+      selectedIdRef.current = selectedId;
+    }, [selectedId]);
+
+    useEffect(() => {
+      activeComponentRef.current = activeComponent;
+    }, [activeComponent]);
+
     const fetchComponents = async () => {
       try {
-        const response = await fetch('/components');
+        const response = await fetch('/data/components.json');
         const data = await response.json();
-        setComponents(data.components || []);
-        setVersion(data.version || '');
-        if (data.components && data.components.length > 0) {
-          const xs = data.components.map((item) => item.x);
-          const ys = data.components.map((item) => item.y);
+        setComponents(data || []);
+        setVersion('static');
+        if (data && data.length > 0) {
+          const xs = data.map((item) => item.x);
+          const ys = data.map((item) => item.y);
           boundsRef.current = {
-            minX: Math.min(...xs) - 400,
-            minY: Math.min(...ys) - 300,
+            minX: 0,
+            minY: 0,
             maxX: Math.max(...xs) + 400,
             maxY: Math.max(...ys) + 300
           };
@@ -140,8 +255,8 @@
         const xs = FALLBACK_COMPONENTS.map((item) => item.x);
         const ys = FALLBACK_COMPONENTS.map((item) => item.y);
         boundsRef.current = {
-          minX: Math.min(...xs) - 400,
-          minY: Math.min(...ys) - 300,
+          minX: 0,
+          minY: 0,
           maxX: Math.max(...xs) + 400,
           maxY: Math.max(...ys) + 300
         };
@@ -152,17 +267,22 @@
       }
     };
 
+    const fetchPolygons = async () => {
+      try {
+        const response = await fetch('/data/polygons.json');
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setPolygons(data);
+        }
+      } catch (error) {
+        setPolygons(FALLBACK_POLYGONS);
+      }
+    };
+
     useEffect(() => {
       fetchComponents();
-      const interval = setInterval(async () => {
-        const response = await fetch('/components/version');
-        const data = await response.json();
-        if (data.version && data.version !== version) {
-          fetchComponents();
-        }
-      }, VERSION_POLL_MS);
-      return () => clearInterval(interval);
-    }, [version]);
+      fetchPolygons();
+    }, []);
 
     useEffect(() => {
       const handleResize = () => {
@@ -202,22 +322,102 @@
     };
 
     const drawFloorGrid = (ctx, bounds) => {
-      const gridSize = 160;
+      const minorGrid = 10;
+      const majorGrid = 100;
+      const gridBounds = getGridBounds(bounds);
+      const minX = Math.floor(gridBounds.minX / minorGrid) * minorGrid;
+      const maxX = Math.ceil(gridBounds.maxX / minorGrid) * minorGrid;
+      const minY = Math.floor(gridBounds.minY / minorGrid) * minorGrid;
+      const maxY = Math.ceil(gridBounds.maxY / minorGrid) * minorGrid;
+
       ctx.save();
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.02)';
       ctx.lineWidth = 1;
-      for (let x = bounds.minX; x <= bounds.maxX; x += gridSize) {
+      for (let x = minX; x <= maxX; x += minorGrid) {
         ctx.beginPath();
-        ctx.moveTo(x, bounds.minY);
-        ctx.lineTo(x, bounds.maxY);
+        ctx.moveTo(x, gridBounds.minY);
+        ctx.lineTo(x, gridBounds.maxY);
         ctx.stroke();
       }
-      for (let y = bounds.minY; y <= bounds.maxY; y += gridSize) {
+      for (let y = minY; y <= maxY; y += minorGrid) {
         ctx.beginPath();
-        ctx.moveTo(bounds.minX, y);
-        ctx.lineTo(bounds.maxX, y);
+        ctx.moveTo(gridBounds.minX, y);
+        ctx.lineTo(gridBounds.maxX, y);
         ctx.stroke();
       }
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1.2;
+      for (let x = Math.floor(gridBounds.minX / majorGrid) * majorGrid; x <= gridBounds.maxX; x += majorGrid) {
+        ctx.beginPath();
+        ctx.moveTo(x, gridBounds.minY);
+        ctx.lineTo(x, gridBounds.maxY);
+        ctx.stroke();
+      }
+      for (let y = Math.floor(gridBounds.minY / majorGrid) * majorGrid; y <= gridBounds.maxY; y += majorGrid) {
+        ctx.beginPath();
+        ctx.moveTo(gridBounds.minX, y);
+        ctx.lineTo(gridBounds.maxX, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
+
+    const drawGridLabels = (ctx, bounds, camera, viewport) => {
+      const labelStep = 100;
+      const gridBounds = getGridBounds(bounds);
+      const halfWidth = viewport.width / (2 * camera.zoom);
+      const halfHeight = viewport.height / (2 * camera.zoom);
+      const visibleMinX = camera.x - halfWidth;
+      const visibleMaxX = camera.x + halfWidth;
+      const visibleMinY = camera.y - halfHeight;
+      const visibleMaxY = camera.y + halfHeight;
+
+      const minLabelX = Math.max(gridBounds.minX, visibleMinX);
+      const maxLabelX = Math.min(gridBounds.maxX, visibleMaxX);
+      const minLabelY = Math.max(gridBounds.minY, visibleMinY);
+      const maxLabelY = Math.min(gridBounds.maxY, visibleMaxY);
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '12px "Segoe UI", sans-serif';
+      ctx.textBaseline = 'top';
+      ctx.textAlign = 'center';
+      for (let x = Math.ceil(minLabelX / labelStep) * labelStep; x <= maxLabelX; x += labelStep) {
+        const screenX = (x - camera.x) * camera.zoom + viewport.width / 2;
+        ctx.fillText(`${x}`, screenX, 8);
+      }
+
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      for (let y = Math.ceil(minLabelY / labelStep) * labelStep; y <= maxLabelY; y += labelStep) {
+        const screenY = (y - camera.y) * camera.zoom + viewport.height / 2;
+        ctx.fillText(`${y}`, 8, screenY);
+      }
+      ctx.restore();
+    };
+
+    const drawPolygons = (ctx, items) => {
+      if (!items || items.length === 0) return;
+      const sorted = [...items].sort((a, b) => (a.z || 0) - (b.z || 0));
+      ctx.save();
+      sorted.forEach((polygon) => {
+        const fill = polygon.fill || '#2b2f36';
+        const stroke = polygon.stroke || 'rgba(0,0,0,0.35)';
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 2;
+        ctx.fillRect(polygon.x, polygon.y, polygon.width, polygon.height);
+        ctx.strokeRect(polygon.x, polygon.y, polygon.width, polygon.height);
+
+        if (polygon.label) {
+          ctx.fillStyle = 'rgba(255,255,255,0.6)';
+          ctx.font = polygon.z ? '12px "Segoe UI", sans-serif' : '14px "Segoe UI", sans-serif';
+          ctx.textBaseline = 'top';
+          ctx.textAlign = 'left';
+          ctx.fillText(polygon.label, polygon.x + 8, polygon.y + 8);
+        }
+      });
       ctx.restore();
     };
 
@@ -240,8 +440,10 @@
       ctx.translate(-camera.x, -camera.y);
 
       const bounds = boundsRef.current;
+      clampCameraToBounds(camera, bounds, { width, height });
       ctx.fillStyle = '#15171c';
       ctx.fillRect(bounds.minX, bounds.minY, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
+      drawPolygons(ctx, polygons);
       drawFloorGrid(ctx, bounds);
 
       // Slightly soften scaling so emoji weight feels consistent across zoom levels.
@@ -250,13 +452,23 @@
       ctx.textBaseline = 'middle';
       ctx.font = `${symbolSize}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
 
-      components.forEach((component) => {
+      const componentsToRender = componentsRef.current;
+      componentsToRender.forEach((component) => {
         const emoji = TYPE_EMOJI[component.type] || '📍';
         ctx.fillText(emoji, component.x, component.y);
       });
 
-      if (selectedId) {
-        const selected = components.find((item) => item.id === selectedId);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.font = `${Math.max(10, symbolSize * 0.55)}px "Segoe UI", sans-serif`;
+      componentsToRender.forEach((component) => {
+        ctx.fillText(component.id, component.x, component.y + symbolSize * 0.6);
+      });
+
+      const selectedIdCurrent = selectedIdRef.current;
+      if (selectedIdCurrent) {
+        const selected = componentsToRender.find((item) => item.id === selectedIdCurrent);
         if (selected) {
           ctx.strokeStyle = 'rgba(88,178,255,0.9)';
           ctx.lineWidth = 3 / camera.zoom;
@@ -268,17 +480,19 @@
 
       ctx.restore();
 
+      drawGridLabels(ctx, bounds, camera, { width, height });
       updatePopupPosition();
     };
 
     const updatePopupPosition = () => {
-      if (!activeComponent) {
+      const component = activeComponentRef.current;
+      if (!component) {
         setPopupPosition(null);
         return;
       }
       const { width, height } = viewportRef.current;
       const camera = cameraRef.current;
-      const screenPoint = worldToScreen({ x: activeComponent.x, y: activeComponent.y }, camera, { width, height });
+      const screenPoint = worldToScreen({ x: component.x, y: component.y }, camera, { width, height });
       setPopupPosition({
         left: Math.min(screenPoint.x + 16, width - 220),
         top: Math.max(screenPoint.y - 20, 80)
@@ -299,6 +513,7 @@
         camera.x = start.x + (end.x - start.x) * eased;
         camera.y = start.y + (end.y - start.y) * eased;
         camera.zoom = start.zoom + (end.zoom - start.zoom) * eased;
+        clampCameraToBounds(camera, boundsRef.current, viewportRef.current);
         scheduleDraw();
         if (t < 1) {
           animationRef.current = requestAnimationFrame(animate);
@@ -313,6 +528,7 @@
     const pickComponentAt = (point) => {
       const { width, height } = viewportRef.current;
       const camera = cameraRef.current;
+      const hitRadius = getHitRadius(camera);
       let closest = null;
       let closestDistance = Infinity;
       components.forEach((component) => {
@@ -320,7 +536,7 @@
         const dx = screenPoint.x - point.x;
         const dy = screenPoint.y - point.y;
         const distance = Math.hypot(dx, dy);
-        if (distance < HIT_RADIUS && distance < closestDistance) {
+        if (distance < hitRadius && distance < closestDistance) {
           closest = component;
           closestDistance = distance;
         }
@@ -329,6 +545,7 @@
     };
 
     const handlePointerDown = (event) => {
+      clearSearchResults();
       cancelAnimation();
       const canvas = canvasRef.current;
       canvas.setPointerCapture(event.pointerId);
@@ -366,6 +583,7 @@
         const camera = cameraRef.current;
         camera.x -= dx / camera.zoom;
         camera.y -= dy / camera.zoom;
+        clampCameraToBounds(camera, boundsRef.current, viewportRef.current);
         if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
           gesture.dragged = true;
         }
@@ -390,6 +608,7 @@
           camera.x = gesture.startWorld.x - (midX - width / 2) / camera.zoom;
           camera.y = gesture.startWorld.y - (midY - height / 2) / camera.zoom;
         }
+        clampCameraToBounds(camera, boundsRef.current, viewportRef.current);
         scheduleDraw();
       }
     };
@@ -403,22 +622,28 @@
       gesture.pointers.delete(event.pointerId);
       if (gesture.pointers.size === 0) {
         gesture.panning = false;
+        clampCameraToBounds(cameraRef.current, boundsRef.current, viewportRef.current);
         if (!gesture.dragged) {
           const rect = canvas.getBoundingClientRect();
           const hit = pickComponentAt({ x: event.clientX - rect.left, y: event.clientY - rect.top });
           if (hit) {
             setSelectedId(hit.id);
             setActiveComponent(hit);
+            selectedIdRef.current = hit.id;
+            activeComponentRef.current = hit;
             focusCameraOn(hit);
           } else {
             setSelectedId(null);
             setActiveComponent(null);
+            selectedIdRef.current = null;
+            activeComponentRef.current = null;
           }
         }
       }
     };
 
     const handleWheel = (event) => {
+      clearSearchResults();
       event.preventDefault();
       cancelAnimation();
       const camera = cameraRef.current;
@@ -431,13 +656,17 @@
       camera.zoom = zoom;
       camera.x = worldPoint.x - (point.x - width / 2) / camera.zoom;
       camera.y = worldPoint.y - (point.y - height / 2) / camera.zoom;
+      clampCameraToBounds(camera, boundsRef.current, viewportRef.current);
       scheduleDraw();
     };
 
     const handleResultSelect = (component) => {
       setSelectedId(component.id);
       setActiveComponent(component);
+      selectedIdRef.current = component.id;
+      activeComponentRef.current = component;
       focusCameraOn(component);
+      clearSearchResults();
     };
 
     const toggleFullscreen = () => {
@@ -450,7 +679,9 @@
 
     useEffect(() => {
       scheduleDraw();
-    }, [components, selectedId, activeComponent]);
+    }, [components, polygons, selectedId, activeComponent]);
+
+    const activeAttributes = activeComponent ? getComponentAttributes(activeComponent) : {};
 
     return React.createElement(
       'div',
@@ -512,10 +743,24 @@
               }
             },
             React.createElement('strong', null, `${activeComponent.id}`),
-            React.createElement('div', null, `Type: ${activeComponent.type}`),
-            React.createElement('div', null, `Default Position: ${activeComponent.defaultPosition}`),
-            React.createElement('div', null, `Flammable: ${activeComponent.flammable ? 'Yes' : 'No'}`),
-            React.createElement('div', null, `Last Inspected: ${formatDate(activeComponent.lastInspected)}`)
+            ['type', 'defaultPosition', 'lastInspected']
+              .filter((key) => activeComponent[key] !== null && activeComponent[key] !== undefined)
+              .map((key) =>
+                React.createElement('div', { key }, `${key}: ${formatValue(key, activeComponent[key])}`)
+              ),
+            Object.keys(activeAttributes)
+              .filter(
+                (key) =>
+                  activeAttributes[key] !== null &&
+                  activeAttributes[key] !== undefined
+              )
+              .map((key) =>
+                React.createElement(
+                  'div',
+                  { key: `attr-${key}` },
+                  `${key}: ${formatValue(key, activeAttributes[key])}`
+                )
+              )
           ),
         React.createElement(
           'div',
