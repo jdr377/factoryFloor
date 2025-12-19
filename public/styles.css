@@ -1,0 +1,144 @@
+:root {
+  color-scheme: dark;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  --panel-bg: rgba(20, 20, 24, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --accent: #58b2ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0e0f12;
+  color: #f5f6f7;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+.app {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
+  touch-action: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.search-panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: min(320px, 70vw);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  padding: 12px;
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.search-panel input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 10px 12px;
+  color: inherit;
+  font-size: 0.95rem;
+}
+
+.search-panel input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.search-results {
+  margin-top: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.search-results button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 8px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.search-results button:hover,
+.search-results button:focus {
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.popup {
+  position: absolute;
+  min-width: 180px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  pointer-events: auto;
+}
+
+.popup strong {
+  color: var(--accent);
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.controls button {
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  color: inherit;
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.status-pill {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(12, 12, 16, 0.64);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  pointer-events: none;
+}

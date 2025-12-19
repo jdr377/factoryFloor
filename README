@@ -1,1 +1,24 @@
-This project renders symbols onto a 2D map, helping clients navigate to and understand details about real life objects in a factory floor.
+# Factory Floor Map
+
+Interactive, mobile-first 2D factory floor map for locating physical components.
+
+## Quick start
+
+```bash
+npm install
+npm run build-db
+npm start
+```
+
+Open `http://localhost:3000`.
+
+## Data
+
+Component data lives in `data/components.json` and is compiled into a read-only SQLite database in `data/factory.db` using `npm run build-db`.
+
+The server loads all component records into memory on startup and exposes:
+
+- `GET /components` → `{ version, components }`
+- `GET /components/version` → `{ version }`
+
+The client polls the version hash and refetches when it changes.
