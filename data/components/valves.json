@@ -1,0 +1,11 @@
+[
+  {
+    "id": "VX248B",
+    "type": "Valve",
+    "x": 1240,
+    "y": 860,
+    "defaultPosition": "closed",
+    "flammable": true,
+    "lastInspected": "2025-07-28"
+  }
+]

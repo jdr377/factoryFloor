@@ -1,0 +1,12 @@
+[
+  {
+    "id": "EO500H",
+    "type": "ElectricalOutlet",
+    "x": 1300,
+    "y": 200,
+    "defaultPosition": "off",
+    "amperage": 15,
+    "voltage": 240,
+    "lastInspected": "2025-06-25"
+  }
+]

@@ -31,6 +31,16 @@ Open `public/index.html` in your browser or serve the `public/` folder with any 
 
 The static client reads `/data/components.json` and `/data/polygons.json` directly when hosted.
 
+### Optional type-split components
+
+You can split components by type in `data/components/*.json` and merge them into `data/components.json`:
+
+```bash
+npm run build-components
+```
+
+If a component entry omits `type`, the merge step will infer it from the filename (e.g. `hydrants.json` → `Hydrant`).
+
 ## Deployment
 
 For static hosting (recommended):

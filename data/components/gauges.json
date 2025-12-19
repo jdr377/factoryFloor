@@ -1,0 +1,10 @@
+[
+  {
+    "id": "GQ400G",
+    "type": "Gauge",
+    "x": 1600,
+    "y": 750,
+    "defaultPosition": "200 PSI",
+    "lastInspected": "2025-07-15"
+  }
+]

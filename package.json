@@ -4,10 +4,11 @@
     "private":  true,
     "description":  "Interactive 2D factory floor map with component search.",
     "scripts":  {
-                    "start":  "node server/index.js",
+                    "build-components":  "node scripts/build-components.js",
+                    "start":  "node scripts/build-components.js && node scripts/sync-data.js && node server/index.js",
                     "sync-data":  "node scripts/sync-data.js",
-                    "predeploy":  "node scripts/sync-data.js",
-                    "deploy":  "node scripts/sync-data.js && firebase deploy"
+                    "predeploy":  "node scripts/build-components.js && node scripts/sync-data.js",
+                    "deploy":  "node scripts/build-components.js && node scripts/sync-data.js && firebase deploy"
                 },
     "dependencies":  {
                          "express":  "^4.19.2"

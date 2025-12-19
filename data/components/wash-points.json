@@ -1,0 +1,11 @@
+[
+  {
+    "id": "WT200D",
+    "type": "WashPoint",
+    "x": 600,
+    "y": 600,
+    "defaultPosition": "closed",
+    "flammable": false,
+    "lastInspected": "2025-06-20"
+  }
+]

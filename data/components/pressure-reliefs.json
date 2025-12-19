@@ -1,0 +1,11 @@
+[
+  {
+    "id": "PR555E",
+    "type": "Pressure Relief",
+    "x": 980,
+    "y": 720,
+    "defaultPosition": "closed",
+    "flammable": true,
+    "lastInspected": "2025-07-10"
+  }
+]

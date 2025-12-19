@@ -1,0 +1,11 @@
+[
+  {
+    "id": "CT300F",
+    "type": "ChemicalTank",
+    "x": 1400,
+    "y": 500,
+    "defaultPosition": "closed",
+    "flammable": true,
+    "lastInspected": "2025-05-30"
+  }
+]

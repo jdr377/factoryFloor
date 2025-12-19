@@ -1,45 +1,22 @@
 [
   {
-    "id": "VX248B",
-    "type": "Valve",
-    "x": 1240,
-    "y": 860,
+    "id": "CT300F",
+    "type": "ChemicalTank",
+    "x": 1400,
+    "y": 500,
     "defaultPosition": "closed",
     "flammable": true,
-    "lastInspected": "2025-07-28"
+    "lastInspected": "2025-05-30"
   },
   {
-    "id": "SW102A",
-    "type": "Switch",
-    "x": 740,
-    "y": 420,
-    "defaultPosition": "on",
-    "flammable": false,
-    "lastInspected": "2025-06-15",
-    "affects": {
-      "componentId": "PR555E",
-      "action": "open"
-    }
-  },
-  {
-    "id": "HY330C",
-    "type": "Hydrant",
-    "x": 1680,
-    "y": 980,
-    "defaultPosition": "closed",
-    "flammable": false,
-    "lastInspected": "2025-05-02",
-    "testedPressure": 120
-  },
-    {
-    "id": "HY1000C",
-    "type": "Hydrant",
-    "defaultPosition": "closed",
-    "x": 1100,
-    "y": 550,
-    "chemical": "CO2",
-    "lastInspected": "2024-08-02",
-    "testedPressure": 180
+    "id": "EO500H",
+    "type": "ElectricalOutlet",
+    "x": 1300,
+    "y": 200,
+    "defaultPosition": "off",
+    "amperage": 15,
+    "voltage": 240,
+    "lastInspected": "2025-06-25"
   },
   {
     "id": "EXIT1",
@@ -95,6 +72,34 @@
     "lastInspected": "2025-08-01"
   },
   {
+    "id": "GQ400G",
+    "type": "Gauge",
+    "x": 1600,
+    "y": 750,
+    "defaultPosition": "200 PSI",
+    "lastInspected": "2025-07-15"
+  },
+  {
+    "id": "HY330C",
+    "type": "Hydrant",
+    "x": 1680,
+    "y": 980,
+    "defaultPosition": "closed",
+    "flammable": false,
+    "lastInspected": "2025-05-02",
+    "testedPressure": 120
+  },
+  {
+    "id": "HY1000C",
+    "type": "Hydrant",
+    "defaultPosition": "closed",
+    "x": 1100,
+    "y": 550,
+    "chemical": "CO2",
+    "lastInspected": "2024-08-02",
+    "testedPressure": 180
+  },
+  {
     "id": "PR555E",
     "type": "Pressure Relief",
     "x": 980,
@@ -104,6 +109,28 @@
     "lastInspected": "2025-07-10"
   },
   {
+    "id": "SW102A",
+    "type": "Switch",
+    "x": 740,
+    "y": 420,
+    "defaultPosition": "on",
+    "flammable": false,
+    "lastInspected": "2025-06-15",
+    "affects": {
+      "componentId": "PR555E",
+      "action": "open"
+    }
+  },
+  {
+    "id": "VX248B",
+    "type": "Valve",
+    "x": 1240,
+    "y": 860,
+    "defaultPosition": "closed",
+    "flammable": true,
+    "lastInspected": "2025-07-28"
+  },
+  {
     "id": "WT200D",
     "type": "WashPoint",
     "x": 600,
@@ -111,32 +138,5 @@
     "defaultPosition": "closed",
     "flammable": false,
     "lastInspected": "2025-06-20"
-  },
-  {
-    "id": "CT300F",
-    "type": "ChemicalTank",
-    "x": 1400,
-    "y": 500,
-    "defaultPosition": "closed",
-    "flammable": true,
-    "lastInspected": "2025-05-30"
-  },
-  {
-    "id": "GQ400G",
-    "type": "Gauge",
-    "x": 1600,
-    "y": 750,
-    "defaultPosition": "200 PSI",
-    "lastInspected": "2025-07-15"
-  },
-  {
-    "id": "EO500H",
-    "type": "ElectricalOutlet",
-    "x": 1300,
-    "y": 200,
-    "defaultPosition": "off",
-    "amperage": 15,
-    "voltage": 240,
-    "lastInspected": "2025-06-25"
   }
 ]

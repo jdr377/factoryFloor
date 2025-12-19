@@ -1,0 +1,15 @@
+[
+  {
+    "id": "SW102A",
+    "type": "Switch",
+    "x": 740,
+    "y": 420,
+    "defaultPosition": "on",
+    "flammable": false,
+    "lastInspected": "2025-06-15",
+    "affects": {
+      "componentId": "PR555E",
+      "action": "open"
+    }
+  }
+]

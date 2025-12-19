@@ -1,0 +1,22 @@
+[
+  {
+    "id": "HY330C",
+    "type": "Hydrant",
+    "x": 1680,
+    "y": 980,
+    "defaultPosition": "closed",
+    "flammable": false,
+    "lastInspected": "2025-05-02",
+    "testedPressure": 120
+  },
+  {
+    "id": "HY1000C",
+    "type": "Hydrant",
+    "defaultPosition": "closed",
+    "x": 1100,
+    "y": 550,
+    "chemical": "CO2",
+    "lastInspected": "2024-08-02",
+    "testedPressure": 180
+  }
+]

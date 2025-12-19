@@ -1,0 +1,55 @@
+[
+  {
+    "id": "EXIT1",
+    "type": "Exit",
+    "x": 450,
+    "y": 200,
+    "defaultPosition": "open",
+    "flammable": false,
+    "lastInspected": "2025-08-01"
+  },
+  {
+    "id": "EXIT2",
+    "type": "Exit",
+    "x": 1940,
+    "y": 300,
+    "defaultPosition": "open",
+    "width": 160,
+    "height": 200,
+    "flammable": null,
+    "lastInspected": "2025-08-01"
+  },
+  {
+    "id": "EXIT3",
+    "type": "Exit",
+    "x": 1700,
+    "y": 1130,
+    "defaultPosition": "open",
+    "width": 160,
+    "height": 200,
+    "flammable": null,
+    "lastInspected": "2025-08-01"
+  },
+  {
+    "id": "EXIT4",
+    "type": "Exit",
+    "x": 300,
+    "y": 1000,
+    "defaultPosition": "open",
+    "width": 160,
+    "height": 200,
+    "flammable": false,
+    "lastInspected": "2025-08-01"
+  },
+  {
+    "id": "EXIT5",
+    "type": "Exit",
+    "x": 900,
+    "y": 370,
+    "defaultPosition": "closed",
+    "width": 160,
+    "height": 200,
+    "flammable": false,
+    "lastInspected": "2025-08-01"
+  }
+]
